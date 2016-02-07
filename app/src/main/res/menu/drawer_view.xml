@@ -1,0 +1,25 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_first_fragment"
+            android:icon="@drawable/ic_action_new_event"
+            android:title="Create New Event" />
+        <item
+            android:id="@+id/nav_second_fragment"
+            android:icon="@drawable/ic_action_upload"
+            android:title="Load Existing Event File" />
+        <!-- <item
+             android:id="@+id/nav_third_fragment"
+             android:icon="@drawable/ic_action_download"
+             android:title="Add Event To Calendar" />
+         <item
+             android:id="@+id/nav_fourth_fragment"
+             android:icon="@drawable/ic_action_share"
+             android:title="Share Event" />
+         <item
+             android:id="@+id/nav_fifth_fragment"
+             android:icon="@drawable/ic_action_save"
+             android:title="View Saved Events" />-->
+    </group>
+</menu>
