@@ -13,12 +13,12 @@
         android:layout_alignParentTop="true"
         android:layout_marginTop="20dp"
         android:orientation="vertical"
-        android:visibility="visible">
+        android:visibility="invisible">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
+            android:layout_marginTop="10dp"
             android:orientation="horizontal"
             android:padding="5dp">
 
@@ -28,22 +28,21 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
                 android:text="Event Title"
-                android:textAppearance="?android:attr/textAppearance" />
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/eventName"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="3"
-                android:text=" "
-                android:textAppearance="?android:attr/textAppearanceLarge" />
+                android:text="Sample" />
 
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
+            android:layout_marginTop="10dp"
             android:orientation="horizontal"
             android:padding="5dp">
 
@@ -53,15 +52,14 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
                 android:text="Event Information"
-                android:textAppearance="?android:attr/textAppearance" />
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/eventInfo"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="3"
-                android:text=" "
-                android:textAppearance="?android:attr/textAppearanceMedium" />
+                android:text="Sample" />
 
         </LinearLayout>
 
@@ -78,7 +76,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="FROM"
-                android:textAppearance="?android:attr/textAppearanceSmall" />
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/beginDateValue"
@@ -111,7 +109,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="TO"
-                android:textAppearance="?android:attr/textAppearanceSmall" />
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/endDateValue"
@@ -134,7 +132,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
+            android:layout_marginTop="10dp"
             android:orientation="horizontal"
             android:padding="5dp">
 
@@ -144,17 +142,48 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="2"
                 android:text="Location"
-                android:textAppearance="?android:attr/textAppearance" />
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/locationValue"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="3"
-                android:text=" "
-                android:textAppearance="?android:attr/textAppearanceMedium" />
+                android:text="Sample" />
 
         </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal"
+            android:padding="5dp">
+
+            <TextView
+                android:id="@+id/timeZoneLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:text="TimeZone"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/timeZoneValue"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="3"
+                android:text="Sample" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/addToCalendarbutton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+            android:text="Add Event To Calendar" />
 
     </LinearLayout>
 

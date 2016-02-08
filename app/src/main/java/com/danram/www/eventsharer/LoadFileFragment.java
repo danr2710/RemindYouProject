@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,22 +22,28 @@ import net.fortuna.ical4j.model.Component;
 import net.fortuna.ical4j.model.Property;
 
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.TimeZone;
 
 
 public class LoadFileFragment extends Fragment {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+
+    public static final String ARG_PARAM1 = "hasIntent";
+    public static final String ARG_PARAM2 = "fileUri";
     private static final String TAG = "LoadFileFragment";
 
     private static final int FILE_SELECT_CODE = 0;
 
     LinearLayout detailsLayout;
-    TextView beginDateValue, beginTimeValue, eventTitle, eventInfo, eventLocation, endDateValue, endTimeValue;
+    TextView beginDateValue, beginTimeValue, eventTitle, eventInfo, eventLocation, endDateValue, endTimeValue, timeZoneValue;
+    String summary, description, location, start, end;
+    TimeZone zone;
+    boolean mParam1;
+    Uri mParam2;
     private OnFragmentInteractionListener mListener;
-    private Button button;
+    private Button button, addToCalendarButton;
 
     public LoadFileFragment() {
         // Required empty public constructor
@@ -46,9 +53,12 @@ public class LoadFileFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            String mParam1 = getArguments().getString(ARG_PARAM1);
-            String mParam2 = getArguments().getString(ARG_PARAM2);
+            mParam1 = getArguments().getBoolean(ARG_PARAM1);
+            mParam2 = getArguments().getParcelable(ARG_PARAM2);
+
         }
+        summary = description = location = start = end = " ";
+
     }
 
     @Override
@@ -56,6 +66,32 @@ public class LoadFileFragment extends Fragment {
                              Bundle savedInstanceState) {
         /* Inflate the layout for this fragment */
         View view = inflater.inflate(R.layout.fragment_load_file, container, false);
+        initUI(view);
+
+        if (mParam1) {
+            readICSFile(mParam2);
+        }
+
+        addToCalendarButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (CalendarUtilsClass.saveEventToCalendar(getActivity(), summary, description, start, end, zone)) {
+                    Toast.makeText(getActivity(), "Successfully added to your Calendar", Toast.LENGTH_SHORT).show();
+                } else
+                    Toast.makeText(getActivity(), "ERROR! Could not add event to Calendar", Toast.LENGTH_SHORT).show();
+            }
+
+        });
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showFileChooser();
+            }
+        });
+        return view;
+    }
+
+    private void initUI(View view) {
         button = (Button) view.findViewById(R.id.load_button);
         beginDateValue = (TextView) view.findViewById(R.id.beginDateValue);
         beginTimeValue = (TextView) view.findViewById(R.id.beginTimeValue);
@@ -65,13 +101,8 @@ public class LoadFileFragment extends Fragment {
         eventTitle = (TextView) view.findViewById(R.id.eventName);
         eventInfo = (TextView) view.findViewById(R.id.eventInfo);
         eventLocation = (TextView) view.findViewById(R.id.locationValue);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showFileChooser();
-            }
-        });
-        return view;
+        timeZoneValue = (TextView) view.findViewById(R.id.timeZoneValue);
+        addToCalendarButton = (Button) view.findViewById(R.id.addToCalendarbutton);
     }
 
 
@@ -98,13 +129,66 @@ public class LoadFileFragment extends Fragment {
         mListener = null;
     }
 
-    private void readICSFile(String path) {
-        FileInputStream fin;
-        net.fortuna.ical4j.model.Calendar calendar = null;
-        //Parsing calendar
-        try {
+    private void displayValues() {
+        eventTitle.setText(summary);
+        eventInfo.setText(description);
+        eventLocation.setText(location);
 
-            fin = new FileInputStream(path);
+        String[] parsedStartDate = parseDate(start);
+        beginDateValue.setText(String.format("%s/%s/%s", parsedStartDate[2], parsedStartDate[1], parsedStartDate[0]));
+        beginTimeValue.setText(String.format("%s:%s", parsedStartDate[3], parsedStartDate[4]));
+
+        String[] parsedDate = parseDate(end);
+        endDateValue.setText(String.format("%s/%s/%s", parsedDate[2], parsedDate[1], parsedDate[0]));
+        endTimeValue.setText(String.format("%s:%s", parsedDate[3], parsedDate[4]));
+
+        timeZoneValue.setText(zone.getDisplayName());
+        button.setVisibility(View.INVISIBLE);
+        detailsLayout.setVisibility(View.VISIBLE);
+
+    }
+
+    private String[] parseDate(String longDate) {
+        String[] dateVal = new String[5];
+        String[] endDt = longDate.split("T");
+        dateVal[0] = endDt[0].substring(0, 4);
+        dateVal[1] = endDt[0].substring(4, 6);
+        dateVal[2] = endDt[0].substring(6);
+        dateVal[3] = endDt[1].substring(0, 2);
+        dateVal[4] = endDt[1].substring(2, 4);
+        return dateVal;
+    }
+
+    private void readICSFile(final Uri uri) {
+
+        net.fortuna.ical4j.model.Calendar calendar = null;
+        final String path = uri.toString();
+        //Parsing calendar
+        String newPath;
+        try {
+            if (path.contains("content")) {
+                String name = FileUtilsClass.getPath(getActivity(), uri);
+                Log.d("tag", "name after parsing: " + name);
+                InputStream fin2 = getActivity().getContentResolver().openInputStream(uri);
+                FileOutputStream os;
+                if (!FileUtilsClass.isExternalStorageDocument(uri)) {
+                    os = new FileOutputStream(Environment.getExternalStorageDirectory() + "/Events/" + name);
+
+                    byte[] buffer = new byte[4096];
+                    int count;
+                    while ((count = fin2.read(buffer)) > 0) {
+                        os.write(buffer, 0, count);
+                    }
+                    os.close();
+                    fin2.close();
+                    newPath = Environment.getExternalStorageDirectory() + "/Events/" + name;
+                } else
+                    newPath = name;
+            } else {
+                newPath = FileUtilsClass.getPath(getActivity(), uri);
+            }
+            InputStream fin = new FileInputStream(newPath);
+
             CalendarBuilder builder = new CalendarBuilder();
             calendar = builder.build(fin);
         } catch (ParserException | IOException e) {
@@ -118,41 +202,22 @@ public class LoadFileFragment extends Fragment {
                 for (Object o1 : component.getProperties()) {
                     Property property = (Property) o1;
                     System.out.println("Property [" + property.getName() + ", " + property.getValue() + "]");
-                    if (property.getName().equalsIgnoreCase("SUMMARY")) {
-                        eventTitle.setText(property.getValue());
-                    }
-                    if (property.getName().equalsIgnoreCase("DESCRIPTION")) {
-                        eventInfo.setText(property.getValue());
-                    }
-                    if (property.getName().equalsIgnoreCase("LOCATION")) {
-                        eventLocation.setText(property.getValue());
-                    }
-                    if (property.getName().equalsIgnoreCase("DTSTART")) {
-                        String startdate = property.getValue();
-                        String[] startDt = startdate.split("T");
-                        String year = startDt[0].substring(0, 4);
-                        String month = startDt[0].substring(4, 6);
-                        String day = startDt[0].substring(7);
-                        String hour = startDt[1].substring(0, 2);
-                        String min = startDt[1].substring(2, 4);
-                        beginDateValue.setText(day + "/" + month + "/" + year);
-                        beginTimeValue.setText(hour + ":" + min);
-                    }
-                    if (property.getName().equalsIgnoreCase("DTEND")) {
-                        String endDate = property.getValue();
-                        String[] endDt = endDate.split("T");
-                        String year = endDt[0].substring(0, 4);
-                        String month = endDt[0].substring(4, 6);
-                        String day = endDt[0].substring(7);
-                        String hour = endDt[1].substring(0, 2);
-                        String min = endDt[1].substring(2, 4);
-                        endDateValue.setText(day + "/" + month + "/" + year);
-                        endTimeValue.setText(hour + ":" + min);
-                    }
+                    if (property.getName().equalsIgnoreCase("SUMMARY"))
+                        summary = property.getValue();
+                    else if (property.getName().equalsIgnoreCase("DESCRIPTION"))
+                        description = property.getValue();
+                    else if (property.getName().equalsIgnoreCase("LOCATION"))
+                        location = property.getValue();
+                    else if (property.getName().equalsIgnoreCase("DTSTART"))
+                        start = property.getValue();
+                    else if (property.getName().equalsIgnoreCase("DTEND"))
+                        end = property.getValue();
+                    else if (property.getName().equalsIgnoreCase("TZID"))
+                        zone = TimeZone.getTimeZone(property.getValue());
+
                 }
             }
-            button.setVisibility(View.INVISIBLE);
-            detailsLayout.setVisibility(View.VISIBLE);
+            displayValues();
         }
 
     }
@@ -183,13 +248,13 @@ public class LoadFileFragment extends Fragment {
 
                     Log.d(TAG, "File Uri: " + uri.toString());
                     // Get the path
-                    String path = null;
+                    String path;
                     path = FileUtilsClass.getPath(getActivity(), uri);
                     Log.d(TAG, "File Path: " + path);
                     // Get the file instance
                     // File file = new File(path);
                     // Initiate the upload
-                    readICSFile(path);
+                    readICSFile(uri);
                 }
                 break;
         }

@@ -10,17 +10,17 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
 
 public class HomeActivity extends AppCompatActivity implements CreateEventFragment.OnFragmentInteractionListener,
         LoadFileFragment.OnFragmentInteractionListener,
-        SaveFileFragment.OnFragmentInteractionListener, ShareEventFragment.OnFragmentInteractionListener {
+        SaveFileFragment.OnFragmentInteractionListener, ViewEventsFragment.OnFragmentInteractionListener {
 
     ActionBarDrawerToggle mDrawerToggle;
     private DrawerLayout mDrawer;
-    private NavigationView nvDrawer;
     private Toolbar myToolbar;
     private ActionBarDrawerToggle drawerToggle;
 
@@ -29,7 +29,28 @@ public class HomeActivity extends AppCompatActivity implements CreateEventFragme
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+        Uri uri = getIntent().getData();
+        if (uri != null) {
+            Log.d("tag", "intent uri: " + uri.toString());
+            try {
+                Fragment fragment = LoadFileFragment.class.newInstance();
+                Bundle args = new Bundle();
+                args.putBoolean(LoadFileFragment.ARG_PARAM1, true);
+                args.putParcelable(LoadFileFragment.ARG_PARAM2, uri);
+                fragment.setArguments(args);
+                // Insert the fragment by replacing any existing fragment
+                FragmentManager fragmentManager = getFragmentManager();
+                try {
+                    fragmentManager.beginTransaction().replace(R.id.flContent, fragment).commit();
+                } catch (NullPointerException e) {
+                    e.printStackTrace();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
+
+        }
         myToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(myToolbar);
 
@@ -38,7 +59,7 @@ public class HomeActivity extends AppCompatActivity implements CreateEventFragme
         drawerToggle = setupDrawerToggle();
 
         // Find our drawer view
-        nvDrawer = (NavigationView) findViewById(R.id.nvView);
+        NavigationView nvDrawer = (NavigationView) findViewById(R.id.nvView);
         // Setup drawer view
         setupDrawerContent(nvDrawer);
 
@@ -74,10 +95,10 @@ public class HomeActivity extends AppCompatActivity implements CreateEventFragme
                 break;
             /*case R.id.nav_third_fragment:
                 fragmentClass = SaveFileFragment.class;
+                break; */
+            case R.id.nav_fifth_fragment:
+                fragmentClass = ViewEventsFragment.class;
                 break;
-            case R.id.nav_fourth_fragment:
-                fragmentClass = ShareEventFragment.class;
-                break;*/
             default:
                 fragmentClass = CreateEventFragment.class;
         }

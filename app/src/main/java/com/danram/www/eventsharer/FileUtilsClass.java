@@ -10,6 +10,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.util.Log;
 
 import net.fortuna.ical4j.data.CalendarOutputter;
 import net.fortuna.ical4j.model.Calendar;
@@ -19,6 +20,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * Created by Home on 07-02-2016.
@@ -39,8 +41,10 @@ public class FileUtilsClass {
 
         // DocumentProvider
         if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+            Log.d("fileUtil", "isDocumentUri");
             // ExternalStorageProvider
             if (isExternalStorageDocument(uri)) {
+                Log.d("fileUtil", "isExternalStorageDocumentUri");
                 final String docId = DocumentsContract.getDocumentId(uri);
                 final String[] split = docId.split(":");
                 final String type = split[0];
@@ -53,7 +57,7 @@ public class FileUtilsClass {
             }
             // DownloadsProvider
             else if (isDownloadsDocument(uri)) {
-
+                Log.d("fileUtil", "isDownloadDocumentUri");
                 final String id = DocumentsContract.getDocumentId(uri);
                 final Uri contentUri = ContentUris.withAppendedId(
                         Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
@@ -62,16 +66,20 @@ public class FileUtilsClass {
             }
             // MediaProvider
             else if (isMediaDocument(uri)) {
+                Log.d("fileUtil", "isMediaDocumentUri");
                 final String docId = DocumentsContract.getDocumentId(uri);
                 final String[] split = docId.split(":");
                 final String type = split[0];
 
                 Uri contentUri = null;
                 if ("image".equals(type)) {
+                    Log.d("fileUtil", "isimageDocumentUri");
                     contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
                 } else if ("video".equals(type)) {
+                    Log.d("fileUtil", "isVideoDocumentUri");
                     contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
                 } else if ("audio".equals(type)) {
+                    Log.d("fileUtil", "isAudioDocumentUri");
                     contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
                 }
 
@@ -85,14 +93,16 @@ public class FileUtilsClass {
         }
         // MediaStore (and general)
         else if ("content".equalsIgnoreCase(uri.getScheme())) {
+            Log.d("fileUtil", "isMediaStoreUri");
             return getDataColumn(context, uri, null, null);
         }
         // File
         else if ("file".equalsIgnoreCase(uri.getScheme())) {
+            Log.d("fileUtil", "isFileUri");
             return uri.getPath();
-        }
-
-        return null;
+        } else
+            Log.d("fileUtil", "isSomeOtherUri");
+        return uri.toString();
     }
 
     /**
@@ -109,7 +119,7 @@ public class FileUtilsClass {
                                        String[] selectionArgs) {
 
         Cursor cursor = null;
-        final String column = "_data";
+        final String column = MediaStore.MediaColumns.DISPLAY_NAME;
         final String[] projection = {
                 column
         };
@@ -121,6 +131,8 @@ public class FileUtilsClass {
                 final int column_index = cursor.getColumnIndexOrThrow(column);
                 return cursor.getString(column_index);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         } finally {
             if (cursor != null)
                 cursor.close();
@@ -156,8 +168,14 @@ public class FileUtilsClass {
     public static boolean saveEventAsICS(Activity context, Calendar icsCalendar, String eventName) {
         FileOutputStream fout;
         try {
-            File file = new File(Environment.getExternalStorageDirectory().getAbsoluteFile(), eventName + ".ics");
+            String extr = Environment.getExternalStorageDirectory().toString();
+            File mFolder = new File(extr + "/Events");
+            if (!mFolder.exists()) {
+                mFolder.mkdir();
+            }
+            File file = new File(String.format("%s/Events", Environment.getExternalStorageDirectory().getAbsoluteFile()), eventName + ".ics");
             fout = new FileOutputStream(file);
+
             CalendarOutputter outputter = new CalendarOutputter();
             try {
                 outputter.output(icsCalendar, fout);
@@ -170,5 +188,22 @@ public class FileUtilsClass {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public static ArrayList getAllFilesInDir() {
+        ArrayList<String> fileNames = new ArrayList<>();
+        String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/Events";
+        File f = new File(path);
+        File file[] = f.listFiles();
+        if (file != null) {
+            for (int i = 0; i < file.length; i++) {
+                String fileName = file[i].getName();
+                if (fileName.endsWith(".ics"))
+                    fileNames.add(fileName);
+            }
+        }
+        if (fileNames.size() == 0)
+            fileNames.add("No files found");
+        return fileNames;
     }
 }

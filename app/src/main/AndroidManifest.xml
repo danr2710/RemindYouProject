@@ -7,10 +7,11 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/app_icon"
         android:label="@string/app_name"
         android:theme="@style/AppTheme">
 
@@ -19,10 +20,40 @@
             android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
+
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="file" />
+                <data android:mimeType="*/*" />
+                <data android:pathPattern=".*\\.ics" />
+                <data android:host="*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="content" />
+                <data android:mimeType="*/*" />
+                <data android:pathPattern=".*\\.ics" />
             </intent-filter>
         </activity>
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="com.mydomain.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_provider_paths" />
+        </provider>
     </application>
 
 </manifest>

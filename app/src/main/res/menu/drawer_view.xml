@@ -1,6 +1,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <group android:checkableBehavior="single">
+    <group
+        android:id="@+id/group_feature"
+        android:checkableBehavior="single">
         <item
             android:id="@+id/nav_first_fragment"
             android:icon="@drawable/ic_action_new_event"
@@ -16,10 +18,19 @@
          <item
              android:id="@+id/nav_fourth_fragment"
              android:icon="@drawable/ic_action_share"
-             android:title="Share Event" />
+             android:title="Share Event" /> -->
          <item
              android:id="@+id/nav_fifth_fragment"
              android:icon="@drawable/ic_action_save"
-             android:title="View Saved Events" />-->
+             android:title="View Event Files" />
     </group>
+    <group
+        android:id="@+id/group_settings"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/settings"
+            android:icon="@drawable/ic_action_settings"
+            android:title="Settings" />
+    </group>
+
 </menu>
