@@ -50,6 +50,16 @@ public class HomeActivity extends AppCompatActivity implements CreateEventFragme
             }
 
 
+        } else {
+            Fragment fragment;
+            try {
+                fragment = ViewEventsFragment.class.newInstance();
+                FragmentManager fragmentManager = getFragmentManager();
+                fragmentManager.beginTransaction().replace(R.id.flContent, fragment).commit();
+            } catch (InstantiationException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+
         }
         myToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(myToolbar);

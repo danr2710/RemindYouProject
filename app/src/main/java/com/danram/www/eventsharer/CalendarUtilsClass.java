@@ -226,30 +226,38 @@ public class CalendarUtilsClass {
         SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.ENGLISH);
         format.setTimeZone(timeZone);
 
-
-        long startMillis = 0;
-        long endMillis = 0;
-        try {
-            startMillis = format.parse(startTime).getTime();
-            endMillis = format.parse(endTime).getTime();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-
         int calId = getCalendarID(context)[0];
 
         // Insert Event
         ContentResolver cr = context.getContentResolver();
         ContentValues values = new ContentValues();
         // TimeZone timeZone = TimeZone.getDefault();
-        values.put(Events.DTSTART, startMillis);
-        values.put(Events.DTEND, endMillis);
-        values.put(Events.EVENT_TIMEZONE, timeZone.getID());
-        values.put(Events.TITLE, title);
-        values.put(Events.DESCRIPTION, desc);
-        values.put(Events.CALENDAR_ID, calId);
-        values.put(Events.HAS_ALARM, 1);
+        long startMillis = 0;
+        long endMillis = 0;
 
+
+        try {
+            startMillis = format.parse(startTime).getTime();
+            endMillis = format.parse(endTime).getTime();
+            values.put(Events.DTSTART, startMillis);
+            values.put(Events.DTEND, endMillis);
+            values.put(Events.EVENT_TIMEZONE, timeZone.getID());
+            values.put(Events.TITLE, title);
+            values.put(Events.DESCRIPTION, desc);
+            values.put(Events.CALENDAR_ID, calId);
+            values.put(Events.HAS_ALARM, 1);
+        } catch (NullPointerException | ParseException e) {
+            //e.printStackTrace();
+            /*new AlertDialog.Builder(context).setTitle("Error")
+                    .setMessage("Sorry, could not add event to Calendar. Please check the details again.")
+                    .setNeutralButton("Ok", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+
+                        }
+                    }).show();*/
+            return false;
+        }
 
         PermissionClass.checkWritePermission(context);
         Uri uri = cr.insert(Events.CONTENT_URI, values);

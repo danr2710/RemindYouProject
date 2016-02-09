@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,8 +43,9 @@ public class LoadFileFragment extends Fragment {
     TimeZone zone;
     boolean mParam1;
     Uri mParam2;
+    ImageView addToCalendarButton;
     private OnFragmentInteractionListener mListener;
-    private Button button, addToCalendarButton;
+    private Button button;
 
     public LoadFileFragment() {
         // Required empty public constructor
@@ -70,8 +72,8 @@ public class LoadFileFragment extends Fragment {
 
         if (mParam1) {
             readICSFile(mParam2);
-        }
-
+        } else
+            showFileChooser();
         addToCalendarButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -82,12 +84,12 @@ public class LoadFileFragment extends Fragment {
             }
 
         });
-        button.setOnClickListener(new View.OnClickListener() {
+        /*button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 showFileChooser();
             }
-        });
+        });*/
         return view;
     }
 
@@ -102,7 +104,7 @@ public class LoadFileFragment extends Fragment {
         eventInfo = (TextView) view.findViewById(R.id.eventInfo);
         eventLocation = (TextView) view.findViewById(R.id.locationValue);
         timeZoneValue = (TextView) view.findViewById(R.id.timeZoneValue);
-        addToCalendarButton = (Button) view.findViewById(R.id.addToCalendarbutton);
+        addToCalendarButton = (ImageView) view.findViewById(R.id.addToCalendarButton);
     }
 
 
@@ -245,16 +247,19 @@ public class LoadFileFragment extends Fragment {
                 if (resultCode == Activity.RESULT_OK) {
                     // Get the Uri of the selected file
                     Uri uri = data.getData();
+                    if (uri != null) {
+                        Log.d(TAG, "File Uri: " + uri.toString());
+                        // Get the path
+                        String path;
+                        path = FileUtilsClass.getPath(getActivity(), uri);
+                        Log.d(TAG, "File Path: " + path);
+                        // Get the file instance
+                        // File file = new File(path);
+                        // Initiate the upload
+                        readICSFile(uri);
+                    } else {
 
-                    Log.d(TAG, "File Uri: " + uri.toString());
-                    // Get the path
-                    String path;
-                    path = FileUtilsClass.getPath(getActivity(), uri);
-                    Log.d(TAG, "File Path: " + path);
-                    // Get the file instance
-                    // File file = new File(path);
-                    // Initiate the upload
-                    readICSFile(uri);
+                    }
                 }
                 break;
         }

@@ -78,7 +78,7 @@ public class CreateEventFragment extends Fragment implements View.OnClickListene
         eventName = (EditText) view.findViewById(R.id.eventNameInput);
         eventInfo = (EditText) view.findViewById(R.id.eventInfoInput);
         location = (EditText) view.findViewById(R.id.locationValue);
-        titleErrorMessage = (TextView) view.findViewById(R.id.titleErrorMessage);
+        //titleErrorMessage = (TextView) view.findViewById(R.id.titleErrorMessage);
         startDateErrorMessage = (TextView) view.findViewById(R.id.startDateError);
         startTimeErrorMessage = (TextView) view.findViewById(R.id.startTimeError);
         TZone = (Spinner) view.findViewById(R.id.timeZoneSpinner);
@@ -96,7 +96,7 @@ public class CreateEventFragment extends Fragment implements View.OnClickListene
 
             @Override
             public void afterTextChanged(Editable editable) {
-                validateEventName();
+                //validateEventName();
             }
         });
 
@@ -119,8 +119,8 @@ public class CreateEventFragment extends Fragment implements View.OnClickListene
         return view;
     }
 
-    private void validateEntry() {
-        validateEventName();
+    private boolean validateEntry() {
+        //validateEventName();
 
         String dateStringStart = beginDateField.getText().toString() + "T" + beginTimeField.getText().toString();
         String dateStringEnd = endDateField.getText().toString() + "T" + endTimeField.getText().toString();
@@ -147,27 +147,34 @@ public class CreateEventFragment extends Fragment implements View.OnClickListene
             endDate = cal2.get(Calendar.DAY_OF_MONTH);
             endHour = cal2.get(Calendar.HOUR_OF_DAY);
             endMin = cal2.get(Calendar.MINUTE);
+            int[] startDay = {startYear, startMonth, startDate, startHour, startMin};
+            int[] endDay = {endYear, endMonth, endDate, endHour, endMin};
+            if (eventName.getText().toString().length() != 0) {
+                if (CalendarUtilsClass.createCalendar(getActivity(), eventName.getText().toString(), startDay, endDay,
+                        location.getText().toString(), eventInfo.getText().toString())) {
+
+                    Toast.makeText(getActivity(), eventName.getText().toString() + " event successfully created", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Toast.makeText(getActivity(), "Please enter an Event Name", Toast.LENGTH_SHORT).show();
+                return false;
+            }
         } catch (ParseException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
+            Toast.makeText(getActivity(), "ERROR! Please check the details again", Toast.LENGTH_SHORT).show();
+            return false;
         }
+        return true;
 
-        int[] startDay = {startYear, startMonth, startDate, startHour, startMin};
-        int[] endDay = {endYear, endMonth, endDate, endHour, endMin};
-
-        if (CalendarUtilsClass.createCalendar(getActivity(), eventName.getText().toString(), startDay, endDay,
-                location.getText().toString(), eventInfo.getText().toString())) {
-
-            Toast.makeText(getActivity(), eventName.getText().toString() + " event successfully created", Toast.LENGTH_SHORT).show();
-        }
     }
 
 
-    private void validateEventName() {
+   /* private void validateEventName() {
         if (eventName.getText().toString().trim().equalsIgnoreCase(""))
             titleErrorMessage.setVisibility(View.VISIBLE);
         else
             titleErrorMessage.setVisibility(View.INVISIBLE);
-    }
+    }*/
 
 
     @Override
@@ -226,7 +233,7 @@ public class CreateEventFragment extends Fragment implements View.OnClickListene
 
                         startTimeErrorMessage.setVisibility(View.INVISIBLE);
                         beginTimeField.setText(String.format("%02d:%02d", hourOfDay, minute));
-                        endTimeField.setText(String.format("%02d:%02d", hourOfDay, minute));
+                        endTimeField.setText(String.format("%02d:%02d", hourOfDay, minute + 15));
 
                     }
                 };
@@ -261,19 +268,20 @@ public class CreateEventFragment extends Fragment implements View.OnClickListene
                 break;
             }
             case R.id.share_button: {
-                validateEntry();
-                Log.d("tag", "filename: " + Environment.getExternalStorageDirectory().getAbsoluteFile().getAbsolutePath() + "/Events");
+                if (validateEntry()) {
+                    Log.d("tag", "filename: " + Environment.getExternalStorageDirectory().getAbsoluteFile().getAbsolutePath() + "/Events");
 
-                File file = new File(String.format("%s/Events", Environment.getExternalStorageDirectory().getAbsoluteFile()), eventName.getText().toString() + ".ics");
-                Uri uri = FileProvider.getUriForFile(getActivity(), "com.mydomain.fileprovider", file);
+                    File file = new File(String.format("%s/Events", Environment.getExternalStorageDirectory().getAbsoluteFile()), eventName.getText().toString() + ".ics");
+                    Uri uri = FileProvider.getUriForFile(getActivity(), "com.mydomain.fileprovider", file);
 
-                Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
-                sharingIntent.setType("text/calendar");
-                sharingIntent.putExtra(Intent.EXTRA_STREAM, uri);
-                sharingIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                // sharingIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-                //getActivity().grantUriPermission();
-                startActivity(Intent.createChooser(sharingIntent, "Share via"));
+                    Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+                    sharingIntent.setType("text/calendar");
+                    sharingIntent.putExtra(Intent.EXTRA_STREAM, uri);
+                    sharingIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    // sharingIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    //getActivity().grantUriPermission();
+                    startActivity(Intent.createChooser(sharingIntent, "Share via"));
+                }
                 break;
             }
             case R.id.addToCalendarButton: {
